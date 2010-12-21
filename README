@@ -1,1 +1,50 @@
 Proposal for session code for Bottle microframework.
+
+See "app", for example:
+
+   session_manager = PickleSession()
+   valid_user = authenticator(session_manager)
+
+   @route('/')
+   @route('/:name')
+   @valid_user()
+   def hello(name = 'world'):
+      return '<h1>Hello %s!</h1>' % name.title()
+
+The "authenticator" creates a decorator that requires authentication.  It
+takes a session manager object, see the BaseSession class for the API that
+it needs to implement.
+
+You also need a login page:
+
+   @route('/auth/login')
+   def login():
+      session = session_manager.get_session()
+      session['name'] = 'foo'
+      session['valid'] = True
+      session_manager.save(session)
+      bottle.redirect(bottle.request.COOKIES.get('validuserloginredirect', '/'))
+
+For example, here's a pickle-based session manager:
+
+   class PickleSession(BaseSession):
+      def __init__(self, session_dir = '/tmp'):
+         self.session_dir = session_dir
+
+      def load(self, sessionid):
+         filename = os.path.join(self.session_dir, 'session-%s' % sessionid)
+         if not os.path.exists(filename): return None
+
+         fp = open(filename, 'r')
+         session = pickle.load(fp)
+         fp.close()
+         return session
+
+      def save(self, data):
+         sessionid = data['sessionid']
+         fileName = os.path.join(self.session_dir, 'session-%s' % sessionid)
+         tmpName = fileName + '.' + str(uuid.uuid4())
+         fp = open(tmpName, 'w')
+         self.session = pickle.dump(data, fp)
+         fp.close()
+         os.rename(tmpName, fileName)
