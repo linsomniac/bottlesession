@@ -17,7 +17,6 @@ def hello(name = 'world'):
 @route('/auth/login')
 def login():
 	session = session_manager.get_session()
-	session['name'] = 'foo'
 	session['valid'] = True
 	session_manager.save(session)
 	bottle.redirect(bottle.request.COOKIES.get('validuserloginredirect', '/'))

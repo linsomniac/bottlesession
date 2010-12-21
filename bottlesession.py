@@ -5,23 +5,25 @@ import bottle
 
 def authenticator(session_manager, login_url = '/auth/login'):
 	def valid_user(login_url = login_url):
-		def decorator(handler, *a, **ka): 
+		def decorator(handler, *a, **ka):
 			import functools
-			@functools.wraps(handler) 
-			def check_auth(*a, **ka): 
-				try: 
+			@functools.wraps(handler)
+			def check_auth(*a, **ka):
+				try:
 					data = session_manager.get_session()
-
-					#  set environment
-					if data['name']:
-						bottle.request.environ['REMOTE_USER'] = data['name'] 
-				except (KeyError, TypeError): 
+					if not data['valid']: raise KeyError('Invalid login')
+				except (KeyError, TypeError):
 					bottle.response.set_cookie('validuserloginredirect',
 							bottle.request.fullpath, path = '/', expires = 900)
-					bottle.redirect(login_url) 
-				return handler(*a, **ka) 
-			return check_auth 
-		return decorator 
+					bottle.redirect(login_url)
+
+				#  set environment
+				if data.get('name'):
+					bottle.request.environ['REMOTE_USER'] = data['name']
+
+				return handler(*a, **ka)
+			return check_auth
+		return decorator
 	return(valid_user)
 
 
