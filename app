@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 from bottle import route, view
-import bottle, bottlelogin
+import bottle, bottlesession
 
 
 ####################
-session_manager = bottlelogin.PickleSession()
-valid_user = bottlelogin.authenticator(session_manager)
+session_manager = bottlesession.PickleSession()
+valid_user = bottlesession.authenticator(session_manager)
 
 @route('/')
 @route('/:name')
