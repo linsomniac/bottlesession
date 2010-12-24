@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+#
+#  Bottle session manager.  See README for full documentation.
+#
+#  Written by: Sean Reifschneider <jafo@tummy.com>
+
+from __future__ import with_statement
 
 import bottle
 
@@ -28,6 +34,7 @@ def authenticator(session_manager, login_url = '/auth/login'):
 
 
 import pickle, os, uuid
+
 class BaseSession:
 	def load(self, sessionid):
 		raise NotImplementedError
@@ -69,17 +76,12 @@ class PickleSession(BaseSession):
 	def load(self, sessionid):
 		filename = os.path.join(self.session_dir, 'session-%s' % sessionid)
 		if not os.path.exists(filename): return None
-
-		fp = open(filename, 'r')
-		session = pickle.load(fp)
-		fp.close()
+		with open(filename, 'r') as fp: session = pickle.load(fp)
 		return session
 
 	def save(self, data):
 		sessionid = data['sessionid']
 		fileName = os.path.join(self.session_dir, 'session-%s' % sessionid)
 		tmpName = fileName + '.' + str(uuid.uuid4())
-		fp = open(tmpName, 'w')
-		self.session = pickle.dump(data, fp)
-		fp.close()
+		with open(tmpName, 'w') as fp: self.session = pickle.dump(data, fp)
 		os.rename(tmpName, fileName)

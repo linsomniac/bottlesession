@@ -1,5 +1,18 @@
 Proposal for session code for Bottle microframework.
 
+Features:
+
+   Saves off URL being hit so that you can redirect after the login.
+         (Stored in a cookie)
+   Simple session manager included.
+   Decorator to specify that a login is required.
+   Saves off login name to "bottle.request.environ['REMOTE_USER']".
+
+Bugs:
+
+   Currently, the session cookie expiration is hard-coded to 15 minutes.
+   Could probably stand to have some other session managers.
+
 See "app", for example:
 
    session_manager = PickleSession()
@@ -15,9 +28,16 @@ The "authenticator" creates a decorator that requires authentication.  It
 takes a session manager object, see the BaseSession class for the API that
 it needs to implement.
 
-You need a login page, here is a complete example:
+"bottlesession" includes a pickle-based session manager that saves session
+files in /tmp, much like the stock PHP session store.  See "PickleSession"
+in "bottlesession.py" for an example implementation, it's real easy!
+That's what we're using above.
+
+You need a login page, valid_user() relies on this being at "/auth/login".
+Here is a complete example:
 
    @route('/auth/login')
+   @view('html/login.html')
    def login():
       passwds = { 'guest' : 'guest',}
 
@@ -40,7 +60,23 @@ You need a login page, here is a complete example:
 
       bottle.redirect(bottle.request.COOKIES.get('validuserloginredirect', '/'))
 
-For example, bottlesession includes a pickle-based session manager that
-saves session files in /tmp, much like the stock PHP session store.  See
-"PickleSession" in "bottlesession.py" for an example implementation, it's
-real easy!
+For a logout, just set the session to invalid:
+
+   @route('/auth/logout')
+   def logout():
+      session = session_manager.get_session()
+      session['valid'] = False
+      session_manager.save(session)
+      bottle.redirect('/auth/login')
+
+And a template for "html/login.html":
+
+   %if error:
+      <fieldset><legend>Notice</legend>{{error}}</fieldset>
+   %end
+
+   <form method="POST" id="form" action="/auth/login">
+      Login name: <input type="text" name="username" /><br/>
+      Password: <input type="password" name="password" /><br/>
+      <input type="submit" value="Login" name="submit" />
+   </form>
