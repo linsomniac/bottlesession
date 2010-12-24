@@ -15,36 +15,32 @@ The "authenticator" creates a decorator that requires authentication.  It
 takes a session manager object, see the BaseSession class for the API that
 it needs to implement.
 
-You also need a login page:
+You need a login page, here is a complete example:
 
    @route('/auth/login')
    def login():
+      passwds = { 'guest' : 'guest',}
+
+      username = bottle.request.forms.get('username')
+      password = bottle.request.forms.get('password')
+
+      if not username or not password:
+         return { 'error' : 'Please specify username and password' }
+
       session = session_manager.get_session()
-      session['name'] = 'foo'
-      session['valid'] = True
+      session['valid'] = False
+
+      if password and passwds.get(username) == password:
+         session['valid'] = True
+         session['name'] = username
+
       session_manager.save(session)
+      if not session['valid']:
+         return { 'error' : 'Username or password is invalid' }
+
       bottle.redirect(bottle.request.COOKIES.get('validuserloginredirect', '/'))
 
-For example, here's a pickle-based session manager:
-
-   class PickleSession(BaseSession):
-      def __init__(self, session_dir = '/tmp'):
-         self.session_dir = session_dir
-
-      def load(self, sessionid):
-         filename = os.path.join(self.session_dir, 'session-%s' % sessionid)
-         if not os.path.exists(filename): return None
-
-         fp = open(filename, 'r')
-         session = pickle.load(fp)
-         fp.close()
-         return session
-
-      def save(self, data):
-         sessionid = data['sessionid']
-         fileName = os.path.join(self.session_dir, 'session-%s' % sessionid)
-         tmpName = fileName + '.' + str(uuid.uuid4())
-         fp = open(tmpName, 'w')
-         self.session = pickle.dump(data, fp)
-         fp.close()
-         os.rename(tmpName, fileName)
+For example, bottlesession includes a pickle-based session manager that
+saves session files in /tmp, much like the stock PHP session store.  See
+"PickleSession" in "bottlesession.py" for an example implementation, it's
+real easy!
