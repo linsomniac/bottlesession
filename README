@@ -12,6 +12,11 @@ Bugs:
 
    Currently, the session cookie expiration is hard-coded to 15 minutes.
    Could probably stand to have some other session managers.
+   Each request does not re-verify the user, it just checks the session.
+         (if the password changes, the session doesn't go invalid)
+   The session data is just a dictionary
+         (ideally, there should probably be a "save()" method or
+         possibly use the context manager interface?)
 
 See "app", for example:
 
