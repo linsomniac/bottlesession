@@ -9,7 +9,8 @@ from __future__ import with_statement
 import bottle
 
 
-def authenticator(session_manager, login_url = '/auth/login'):
+def authenticator(session_manager, login_url = '/auth/login',
+		cookie_expires = None):
 	def valid_user(login_url = login_url):
 		def decorator(handler, *a, **ka):
 			import functools
@@ -20,7 +21,8 @@ def authenticator(session_manager, login_url = '/auth/login'):
 					if not data['valid']: raise KeyError('Invalid login')
 				except (KeyError, TypeError):
 					bottle.response.set_cookie('validuserloginredirect',
-							bottle.request.fullpath, path = '/', expires = 900)
+							bottle.request.fullpath, path = '/',
+							expires = cookie_expires)
 					bottle.redirect(login_url)
 
 				#  set environment
