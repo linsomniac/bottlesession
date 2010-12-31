@@ -9,8 +9,14 @@ from __future__ import with_statement
 import bottle
 
 
-def authenticator(session_manager, login_url = '/auth/login',
-		cookie_expires = None):
+def authenticator(session_manager, login_url = '/auth/login'):
+	'''Create an authenticator decorator.
+
+	:param session_manager: A session manager class to be used for storing
+			and retrieving session data.  Probably based on :class:`BaseSession`.
+	:param login_url: The URL to redirect to if a login is required.
+			(default: ``'/auth/login'``).
+	'''
 	def valid_user(login_url = login_url):
 		def decorator(handler, *a, **ka):
 			import functools
@@ -22,7 +28,7 @@ def authenticator(session_manager, login_url = '/auth/login',
 				except (KeyError, TypeError):
 					bottle.response.set_cookie('validuserloginredirect',
 							bottle.request.fullpath, path = '/',
-							expires = cookie_expires)
+							expires = 3600)
 					bottle.redirect(login_url)
 
 				#  set environment
@@ -38,6 +44,16 @@ def authenticator(session_manager, login_url = '/auth/login',
 import pickle, os, uuid
 
 class BaseSession:
+	'''Base class which implements some of the basic functionality required for
+	session managers.  Cannot be used directly.
+
+	:param cookie_expires: Expiration time of session ID cookie, either `None`
+			if the cookie is not to expire, a number of seconds in the future,
+			or a datetime object.  (default: 30 days)
+	'''
+	def __init__(self, cookie_expires = 86400*30):
+		self.cookie_expires = cookie_expires
+
 	def load(self, sessionid):
 		raise NotImplementedError
 
@@ -60,7 +76,7 @@ class BaseSession:
 		if not sessionid:
 			sessionid = self.allocate_new_session_id()
 			bottle.response.set_cookie('sessionid', sessionid,
-					path = '/', expires = 900)
+					path = '/', expires = self.cookie_expires)
 
 		#  load existing or create new session
 		data = self.load(sessionid)
@@ -72,7 +88,13 @@ class BaseSession:
 
 
 class PickleSession(BaseSession):
-	def __init__(self, session_dir = '/tmp'):
+	'''Class which stores session information in the file-system.
+
+	:param session_dir: Directory that session information is stored in.
+			(default: ``'/tmp'``).
+	'''
+	def __init__(self, session_dir = '/tmp', *args, **kwargs):
+		super(BaseSession, self).__init__(*args, **kwargs)
 		self.session_dir = session_dir
 
 	def load(self, sessionid):

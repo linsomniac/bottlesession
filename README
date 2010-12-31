@@ -10,7 +10,6 @@ Features:
 
 Bugs:
 
-   Currently, the session cookie expiration is hard-coded to 15 minutes.
    Could probably stand to have some other session managers.
    Each request does not re-verify the user, it just checks the session.
          (if the password changes, the session doesn't go invalid)
