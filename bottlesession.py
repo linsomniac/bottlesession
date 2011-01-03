@@ -43,7 +43,7 @@ def authenticator(session_manager, login_url = '/auth/login'):
 
 import pickle, os, uuid
 
-class BaseSession:
+class BaseSession(object):
 	'''Base class which implements some of the basic functionality required for
 	session managers.  Cannot be used directly.
 
@@ -94,7 +94,7 @@ class PickleSession(BaseSession):
 			(default: ``'/tmp'``).
 	'''
 	def __init__(self, session_dir = '/tmp', *args, **kwargs):
-		super(BaseSession, self).__init__(*args, **kwargs)
+		super(PickleSession, self).__init__(*args, **kwargs)
 		self.session_dir = session_dir
 
 	def load(self, sessionid):
@@ -109,3 +109,48 @@ class PickleSession(BaseSession):
 		tmpName = fileName + '.' + str(uuid.uuid4())
 		with open(tmpName, 'w') as fp: self.session = pickle.dump(data, fp)
 		os.rename(tmpName, fileName)
+
+
+class CookieSession(BaseSession):
+	'''Session manager class which stores session in a signed browser cookie.
+
+	:param cookie_name: Name of the cookie to store the session in.
+			(default: ``session_data``)
+	:param secret: Secret to be used for "secure cookie".  If ``None``,
+			attempts will be made to generate a difficult to guess secret.
+			However, this is probably only suitable for private web apps, and
+			definitely only for a single web server.  You really should be
+			using your own secret.  (default: ``None``)
+	:param secret_file: File to read the secret from.  If ``secret`` is
+			``None`` and ``secret_file`` is set, the first line of this file
+			is read, and stripped, to produce the secret.
+	'''
+
+	def __init__(self, secret = None, secret_file = None,
+			cookie_name = 'session_data', *args, **kwargs):
+		super(CookieSession, self).__init__(*args, **kwargs)
+		self.cookie_name = cookie_name
+
+		if not secret and secret_file is not None:
+			with open(secret_file, 'r') as fp:
+				secret = fp.readline().strip()
+
+		if not secret:
+			#  generate a difficult to guess secret
+			import uuid, hashlib, time
+			secret = str(uuid.uuid1()).split('-', 1)[1]
+			with open('/proc/uptime', 'r') as fp:
+				uptime = int(time.time() - float(fp.readline().split()[0]))
+				secret += '-' + str(uptime)
+			secret = hashlib.sha1(secret).hexdigest()
+
+		self.secret = secret
+
+	def load(self, sessionid):
+		cookie = bottle.request.get_cookie(self.cookie_name, secret = self.secret)
+		if cookie == None: return {}
+		return pickle.loads(cookie)
+
+	def save(self, data):
+		bottle.response.set_cookie(self.cookie_name, pickle.dumps(data),
+				secret = self.secret, path = '/', expires = self.cookie_expires)

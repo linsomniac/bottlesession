@@ -5,7 +5,8 @@ import bottle, bottlesession
 
 
 ####################
-session_manager = bottlesession.PickleSession()
+#session_manager = bottlesession.PickleSession()
+session_manager = bottlesession.CookieSession()
 valid_user = bottlesession.authenticator(session_manager)
 
 @route('/')

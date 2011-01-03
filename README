@@ -4,7 +4,7 @@ Features:
 
    Saves off URL being hit so that you can redirect after the login.
          (Stored in a cookie)
-   Simple session manager included.
+   Simple session managers included: store in /tmp and store in cookie.
    Decorator to specify that a login is required.
    Saves off login name to "bottle.request.environ['REMOTE_USER']".
 
@@ -19,7 +19,8 @@ Bugs:
 
 See "app", for example:
 
-   session_manager = PickleSession()
+   #session_manager = PickleSession()
+   session_manager = CookieSession()    #  NOTE: you should specify a secret
    valid_user = authenticator(session_manager)
 
    @route('/')
@@ -35,7 +36,12 @@ it needs to implement.
 "bottlesession" includes a pickle-based session manager that saves session
 files in /tmp, much like the stock PHP session store.  See "PickleSession"
 in "bottlesession.py" for an example implementation, it's real easy!
-That's what we're using above.
+
+"PickleSession()" stores the session in a pickled file under "/tmp" (or other
+location, as specified by the "session_dir" argument).  "CookieSession()"
+stores the cookie in a secure cookie.  If no cookie is specified, it will
+try to generate a hard to guess but persistent secret.  For anything but
+trial applications, you should specify a strong secret
 
 You need a login page, valid_user() relies on this being at "/auth/login".
 Here is a complete example:
