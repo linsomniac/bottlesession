@@ -117,10 +117,9 @@ class CookieSession(BaseSession):
 	:param cookie_name: Name of the cookie to store the session in.
 			(default: ``session_data``)
 	:param secret: Secret to be used for "secure cookie".  If ``None``,
-			attempts will be made to generate a difficult to guess secret.
-			However, this is probably only suitable for private web apps, and
-			definitely only for a single web server.  You really should be
-			using your own secret.  (default: ``None``)
+			a random secret will be generated and written to a temporary
+			file for future use.  This may not be suitable for systems which
+			have untrusted users on it.  (default: ``None``)
 	:param secret_file: File to read the secret from.  If ``secret`` is
 			``None`` and ``secret_file`` is set, the first line of this file
 			is read, and stripped, to produce the secret.
@@ -136,13 +135,23 @@ class CookieSession(BaseSession):
 				secret = fp.readline().strip()
 
 		if not secret:
-			#  generate a difficult to guess secret
-			import uuid, hashlib, time
-			secret = str(uuid.uuid1()).split('-', 1)[1]
-			with open('/proc/uptime', 'r') as fp:
-				uptime = int(time.time() - float(fp.readline().split()[0]))
-				secret += '-' + str(uptime)
-			secret = hashlib.sha1(secret).hexdigest()
+			import string, random, tempfile, sys
+
+			tmpfilename = os.path.join(tempfile.gettempdir(),
+					'%s.secret' % os.path.basename(sys.argv[0]))
+
+			if os.path.exists(tmpfilename):
+				with open(tmpfilename, 'r') as fp:
+					secret = fp.readline().strip()
+			else:
+				#  save off a secret to a tmp file
+				secret = ''.join([ random.choice(string.letters)
+						for x in range(32) ])
+
+				old_umask = os.umask(077)
+				with open(tmpfilename, 'w') as fp:
+					fp.write(secret)
+				os.umask(old_umask)
 
 		self.secret = secret
 
