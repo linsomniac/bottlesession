@@ -56,47 +56,47 @@ trial applications, you should specify a strong secret
 You need a login page, valid_user() relies on this being at "/auth/login".
 Here is a complete example:
 
-   @route('/auth/login')
-   @view('html/login.html')
-   def login():
-      passwds = { 'guest' : 'guest',}
+    @route('/auth/login')
+    @view('html/login.html')
+    def login():
+       passwds = { 'guest' : 'guest',}
 
-      username = bottle.request.forms.get('username')
-      password = bottle.request.forms.get('password')
+       username = bottle.request.forms.get('username')
+       password = bottle.request.forms.get('password')
 
-      if not username or not password:
-         return { 'error' : 'Please specify username and password' }
+       if not username or not password:
+          return { 'error' : 'Please specify username and password' }
 
-      session = session_manager.get_session()
-      session['valid'] = False
+       session = session_manager.get_session()
+       session['valid'] = False
 
-      if password and passwds.get(username) == password:
-         session['valid'] = True
-         session['name'] = username
+       if password and passwds.get(username) == password:
+          session['valid'] = True
+          session['name'] = username
 
-      session_manager.save(session)
-      if not session['valid']:
-         return { 'error' : 'Username or password is invalid' }
+       session_manager.save(session)
+       if not session['valid']:
+          return { 'error' : 'Username or password is invalid' }
 
-      bottle.redirect(bottle.request.COOKIES.get('validuserloginredirect', '/'))
+       bottle.redirect(bottle.request.COOKIES.get('validuserloginredirect', '/'))
 
 For a logout, just set the session to invalid:
 
-   @route('/auth/logout')
-   def logout():
-      session = session_manager.get_session()
-      session['valid'] = False
-      session_manager.save(session)
-      bottle.redirect('/auth/login')
+    @route('/auth/logout')
+    def logout():
+       session = session_manager.get_session()
+       session['valid'] = False
+       session_manager.save(session)
+       bottle.redirect('/auth/login')
 
 And a template for "html/login.html":
 
-   %if error:
-      <fieldset><legend>Notice</legend>{{error}}</fieldset>
-   %end
+    %if error:
+       <fieldset><legend>Notice</legend>{{error}}</fieldset>
+    %end
 
-   <form method="POST" id="form" action="/auth/login">
-      Login name: <input type="text" name="username" /><br/>
-      Password: <input type="password" name="password" /><br/>
-      <input type="submit" value="Login" name="submit" />
-   </form>
+    <form method="POST" id="form" action="/auth/login">
+       Login name: <input type="text" name="username" /><br/>
+       Password: <input type="password" name="password" /><br/>
+       <input type="submit" value="Login" name="submit" />
+    </form>
