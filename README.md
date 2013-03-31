@@ -1,35 +1,43 @@
-Proposal for authentication and session code for Bottle microframework.
+Sean Reifschneider <jafo@tummy.com>  
+Homepage/Code/bugfixes: [https://github.com/linsomniac/bottlesession](https://github.com/linsomniac/bottlesession)  
+License: 3-clause BSD  
 
-License: 3-clause BSD
+BottleSession README
+====================
+
+Proposal for authentication and session code for Bottle microframework.
 
 Features:
 
-   Saves off URL being hit so that you can redirect after the login.
+   * Saves off URL being hit so that you can redirect after the login.
          (Stored in a cookie)
-   Simple session managers included: store in /tmp and store in cookie.
-   Decorator to specify that a login is required.
-   Saves off login name to "bottle.request.environ['REMOTE_USER']".
+   * Simple session managers included: store in /tmp and store in cookie.
+   * Decorator to specify that a login is required.
+   * Saves off login name to "bottle.request.environ['REMOTE_USER']".
 
 Bugs:
 
-   Could probably stand to have some other session managers.
-   Each request does not re-verify the user, it just checks the session.
+   * Could probably stand to have some other session managers.
+   * Each request does not re-verify the user, it just checks the session.
          (if the password changes, the session doesn't go invalid)
-   The session data is just a dictionary
+   * The session data is just a dictionary
          (ideally, there should probably be a "save()" method or
          possibly use the context manager interface?)
 
+Example
+-------
+
 See "app", for example:
 
-   #session_manager = PickleSession()
-   session_manager = CookieSession()    #  NOTE: you should specify a secret
-   valid_user = authenticator(session_manager)
+    #session_manager = PickleSession()
+    session_manager = CookieSession()    #  NOTE: you should specify a secret
+    valid_user = authenticator(session_manager)
 
-   @route('/')
-   @route('/:name')
-   @valid_user()
-   def hello(name = 'world'):
-      return '<h1>Hello %s!</h1>' % name.title()
+    @route('/')
+    @route('/:name')
+    @valid_user()
+    def hello(name = 'world'):
+       return '<h1>Hello %s!</h1>' % name.title()
 
 The "authenticator" creates a decorator that requires authentication.  It
 takes a session manager object, see the BaseSession class for the API that
