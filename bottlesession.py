@@ -3,6 +3,8 @@
 #  Bottle session manager.  See README for full documentation.
 #
 #  Written by: Sean Reifschneider <jafo@tummy.com>
+#
+#  License: 3-clause BSD
 
 from __future__ import with_statement
 

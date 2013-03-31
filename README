@@ -1,5 +1,7 @@
 Proposal for authentication and session code for Bottle microframework.
 
+License: 3-clause BSD
+
 Features:
 
    Saves off URL being hit so that you can redirect after the login.
