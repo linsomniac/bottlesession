@@ -5,7 +5,8 @@ License: 3-clause BSD
 BottleSession README
 ====================
 
-Proposal for authentication and session code for Bottle microframework.
+A simple library to make session authenitcation easy with the Bottle
+micro-framework.
 
 Features:
 
