@@ -164,4 +164,4 @@ class CookieSession(BaseSession):
 
 	def save(self, data):
 		bottle.response.set_cookie(self.cookie_name, pickle.dumps(data),
-				secret = self.secret, path = '/', expires = self.cookie_expires)
+				secret = self.secret, path = '/', expires = self.cookie_expires, secure = True, httponly = True)
