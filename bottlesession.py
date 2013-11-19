@@ -33,7 +33,7 @@ def authenticator(session_manager, login_url='/auth/login'):
                 except (KeyError, TypeError):
                     bottle.response.set_cookie('validuserloginredirect',
                             bottle.request.fullpath, path='/',
-                            expires=3600)
+                            expires=(int(time.time()) + 3600))
                     bottle.redirect(login_url)
 
                 #  set environment
@@ -86,7 +86,7 @@ class BaseSession(object):
             sessionid = self.allocate_new_session_id()
             bottle.response.set_cookie(
                     'sessionid', sessionid, path='/',
-                    expires=self.cookie_expires)
+                    expires=(int(time.time()) + self.cookie_expires))
 
         #  load existing or create new session
         data = self.load(sessionid)
@@ -182,5 +182,5 @@ class CookieSession(BaseSession):
     def save(self, data):
         bottle.response.set_cookie(
                 self.cookie_name, pickle.dumps(data), secret=self.secret,
-                path='/', expires=self.cookie_expires, secure=True,
-                httponly=True)
+                path='/', expires=int(time.time()) + self.cookie_expires,
+                secure=True, httponly=True)
