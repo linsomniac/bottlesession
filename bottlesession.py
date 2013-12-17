@@ -9,7 +9,7 @@
 from __future__ import with_statement
 
 import bottle
-
+import time
 
 def authenticator(session_manager, login_url='/auth/login'):
     '''Create an authenticator decorator.
