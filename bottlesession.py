@@ -32,9 +32,10 @@ def authenticator(session_manager, login_url='/auth/login'):
                     if not data['valid']:
                         raise KeyError('Invalid login')
                 except (KeyError, TypeError):
-                    bottle.response.set_cookie('validuserloginredirect',
-                            bottle.request.fullpath, path='/',
-                            expires=(int(time.time()) + 3600))
+                    bottle.response.set_cookie(
+                        'validuserloginredirect',
+                        bottle.request.fullpath, path='/',
+                        expires=(int(time.time()) + 3600))
                     bottle.redirect(login_url)
 
                 #  set environment
@@ -86,8 +87,8 @@ class BaseSession(object):
         if not sessionid:
             sessionid = self.allocate_new_session_id()
             bottle.response.set_cookie(
-                    'sessionid', sessionid, path='/',
-                    expires=(int(time.time()) + self.cookie_expires))
+                'sessionid', sessionid, path='/',
+                expires=(int(time.time()) + self.cookie_expires))
 
         #  load existing or create new session
         data = self.load(sessionid)
@@ -155,16 +156,18 @@ class CookieSession(BaseSession):
             import tempfile
             import sys
 
-            tmpfilename = os.path.join(tempfile.gettempdir(),
-                    '%s.secret' % os.path.basename(sys.argv[0]))
+            tmpfilename = os.path.join(
+                tempfile.gettempdir(),
+                '%s.secret' % os.path.basename(sys.argv[0]))
 
             if os.path.exists(tmpfilename):
                 with open(tmpfilename, 'r') as fp:
                     secret = fp.readline().strip()
             else:
                 #  save off a secret to a tmp file
-                secret = ''.join([random.choice(string.letters)
-                        for x in range(32)])
+                secret = ''.join([
+                    random.choice(string.letters)
+                    for x in range(32)])
 
                 old_umask = os.umask(077)
                 with open(tmpfilename, 'w') as fp:
@@ -174,14 +177,15 @@ class CookieSession(BaseSession):
         self.secret = secret
 
     def load(self, sessionid):
-        cookie = bottle.request.get_cookie(self.cookie_name,
-                secret=self.secret)
-        if cookie == None:
+        cookie = bottle.request.get_cookie(
+            self.cookie_name,
+            secret=self.secret)
+        if cookie is None:
             return {}
         return pickle.loads(cookie)
 
     def save(self, data):
         bottle.response.set_cookie(
-                self.cookie_name, pickle.dumps(data), secret=self.secret,
-                path='/', expires=int(time.time()) + self.cookie_expires,
-                secure=True, httponly=True)
+            self.cookie_name, pickle.dumps(data), secret=self.secret,
+            path='/', expires=int(time.time()) + self.cookie_expires,
+            secure=True, httponly=True)
