@@ -5,12 +5,14 @@
 #  Written by: Sean Reifschneider <jafo@tummy.com>
 #
 #  License: 3-clause BSD
+#
+#  Modified from: https://github.com/linsomniac/bottlesession
 
 from __future__ import with_statement
 
 import bottle
 import time
-
+import sys
 
 def authenticator(session_manager, login_url='/auth/login'):
     '''Create an authenticator decorator.
@@ -75,7 +77,7 @@ class BaseSession(object):
 
     def allocate_new_session_id(self):
         #  retry allocating a unique sessionid
-        for i in xrange(100):
+        for i in range(100):
             sessionid = self.make_session_id()
             if not self.load(sessionid):
                 return sessionid
@@ -83,7 +85,7 @@ class BaseSession(object):
 
     def get_session(self):
         #  get existing or create new session identifier
-        sessionid = bottle.request.COOKIES.get('sessionid')
+        sessionid = bottle.request.get_cookie('sessionid')
         if not sessionid:
             sessionid = self.allocate_new_session_id()
             bottle.response.set_cookie(
@@ -142,9 +144,12 @@ class CookieSession(BaseSession):
 
     def __init__(
             self, secret=None, secret_file=None, cookie_name='session_data',
-            *args, **kwargs):
+            secure=False, httponly=True, *args, **kwargs):
+
         super(CookieSession, self).__init__(*args, **kwargs)
         self.cookie_name = cookie_name
+        self.secure = secure
+        self.httponly = httponly
 
         if not secret and secret_file is not None:
             with open(secret_file, 'r') as fp:
@@ -169,7 +174,10 @@ class CookieSession(BaseSession):
                     random.choice(string.letters)
                     for x in range(32)])
 
-                old_umask = os.umask(077)
+                if sys.version_info[0] < 3: 
+                    old_umask = eval('os.umask(077)')
+                else:
+                    old_umask = os.umask('077')
                 with open(tmpfilename, 'w') as fp:
                     fp.write(secret)
                 os.umask(old_umask)
@@ -177,6 +185,7 @@ class CookieSession(BaseSession):
         self.secret = secret
 
     def load(self, sessionid):
+
         cookie = bottle.request.get_cookie(
             self.cookie_name,
             secret=self.secret)
@@ -185,7 +194,13 @@ class CookieSession(BaseSession):
         return pickle.loads(cookie)
 
     def save(self, data):
-        bottle.response.set_cookie(
-            self.cookie_name, pickle.dumps(data), secret=self.secret,
-            path='/', expires=int(time.time()) + self.cookie_expires,
-            secure=True, httponly=True)
+        args = dict(secret=self.secret,
+                    path='/', expires=int(time.time()) + self.cookie_expires)
+        if self.secure:
+            args['secure'] = True
+        if self.httponly:
+            args['httponly'] = True
+
+        bottle.response.set_cookie(self.cookie_name, pickle.dumps(data), **args)
+            
+
