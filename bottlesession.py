@@ -169,7 +169,7 @@ class CookieSession(BaseSession):
                     random.choice(string.letters)
                     for x in range(32)])
 
-                old_umask = os.umask(077)
+                old_umask = os.umask(int('077', 8))
                 with open(tmpfilename, 'w') as fp:
                     fp.write(secret)
                 os.umask(old_umask)
