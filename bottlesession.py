@@ -83,7 +83,7 @@ class BaseSession(object):
 
     def get_session(self):
         #  get existing or create new session identifier
-        sessionid = bottle.request.COOKIES.get('sessionid')
+        sessionid = bottle.request.get_cookie('sessionid')
         if not sessionid:
             sessionid = self.allocate_new_session_id()
             bottle.response.set_cookie(

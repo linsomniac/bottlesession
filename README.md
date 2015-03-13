@@ -79,7 +79,7 @@ Here is a complete example:
        if not session['valid']:
           return { 'error' : 'Username or password is invalid' }
 
-       bottle.redirect(bottle.request.COOKIES.get('validuserloginredirect', '/'))
+       bottle.redirect(bottle.request.get_cookie('validuserloginredirect', '/'))
 
 For a logout, just set the session to invalid:
 

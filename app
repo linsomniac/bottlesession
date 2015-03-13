@@ -20,7 +20,7 @@ def login():
 	session = session_manager.get_session()
 	session['valid'] = True
 	session_manager.save(session)
-	bottle.redirect(bottle.request.COOKIES.get('validuserloginredirect', '/'))
+	bottle.redirect(bottle.request.get_cookie('validuserloginredirect', '/'))
 
 
 ##################
