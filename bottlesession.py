@@ -5,14 +5,12 @@
 #  Written by: Sean Reifschneider <jafo@tummy.com>
 #
 #  License: 3-clause BSD
-#
-#  Modified from: https://github.com/linsomniac/bottlesession
 
 from __future__ import with_statement
 
 import bottle
 import time
-import sys
+
 
 def authenticator(session_manager, login_url='/auth/login'):
     '''Create an authenticator decorator.
@@ -182,7 +180,6 @@ class CookieSession(BaseSession):
         self.secret = secret
 
     def load(self, sessionid):
-
         cookie = bottle.request.get_cookie(
             self.cookie_name,
             secret=self.secret)
@@ -198,6 +195,5 @@ class CookieSession(BaseSession):
         if self.httponly:
             args['httponly'] = True
 
-        bottle.response.set_cookie(self.cookie_name, pickle.dumps(data), **args)
-            
-
+        bottle.response.set_cookie(
+            self.cookie_name, pickle.dumps(data), **args)
