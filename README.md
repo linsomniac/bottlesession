@@ -58,9 +58,10 @@ You need a login page, valid_user() relies on this being at "/auth/login".
 Here is a complete example:
 
     @route('/auth/login')
+    @post('/auth/login')
     @view('html/login.html')
     def login():
-       passwds = { 'guest' : 'guest',}
+       passwds = { 'guest' : 'guest' }
 
        username = bottle.request.forms.get('username')
        password = bottle.request.forms.get('password')
